@@ -1,0 +1,12 @@
+# os related
+.DS_Store
+
+# output dirs
+build
+bin
+
+# other
+.project
+.classpath
+.settings
+.gradle
