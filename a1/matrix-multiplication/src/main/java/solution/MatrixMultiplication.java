@@ -1,5 +1,6 @@
 package solution;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,26 +31,15 @@ public class MatrixMultiplication {
         double[][] a,
         double[][] b
     ) {
-        int rows = a.length;
-        int common = a[0].length;
-        int cols = b[0].length;
-
         double[][] bT = transposeMatrix(b);
-        double[][] res = new double[rows][cols];
 
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                double s = 0.0;
-
-                for (int i = 0; i < common; i++) {
-                    s += a[r][i] * bT[c][i];
-                }
-
-                res[r][c] = s;
-            }
-        }
-
-        return res;
+        return IntStream.range(0, a.length)
+            .mapToObj(r ->
+                IntStream.range(0, b[0].length)
+                    .mapToDouble(c -> dotProduct(a[r], bT[c]))
+                    .toArray()
+            )
+            .toArray(double[][]::new);
     }
 
     /**
@@ -63,23 +53,38 @@ public class MatrixMultiplication {
         double[][] a,
         double[][] b
     ) {
-        int rows = a.length;
-        int cols = b[0].length;
-
         double[][] bT = transposeMatrix(b);
-        double[][] res = new double[rows][cols];
+        ExecutorService exc = Executors.newFixedThreadPool(NUMBER_THREADS);
 
-        CompletableFuture<?>[] futures = IntStream.range(0, rows)
-            .mapToObj(aRowIdx ->
-                CompletableFuture.runAsync(
-                    new MatrixMultiplicationTask(aRowIdx, a, bT, res)
-                )
+        try {
+            List<CompletableFuture<double[]>> futures = IntStream.range(
+                0,
+                a.length
             )
-            .toArray(CompletableFuture[]::new);
+                .mapToObj(r ->
+                    CompletableFuture.supplyAsync(
+                        () ->
+                            IntStream.range(0, b[0].length)
+                                .mapToDouble(c -> dotProduct(a[r], bT[c]))
+                                .toArray(),
+                        exc
+                    )
+                )
+                .toList();
 
-        CompletableFuture.allOf(futures).join();
+            return futures
+                .stream()
+                .map(CompletableFuture::join)
+                .toArray(double[][]::new);
+        } finally {
+            exc.shutdown();
+        }
+    }
 
-        return res;
+    private static double dotProduct(double[] a, double[] b) {
+        return IntStream.range(0, a.length)
+            .mapToDouble(i -> a[i] * b[i])
+            .sum();
     }
 
     private static double[][] generateRandomMatrix(int rows, int cols) {
