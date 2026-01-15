@@ -1,5 +1,8 @@
 run-deadlock:
     ./gradlew :deadlock:run -PmainClass=example.Deadlock
 
+run-ordering:
+    ./gradlew :deadlock:run -PmainClass=example.ResourceOrdering
+
 test:
     ./gradlew clean test
