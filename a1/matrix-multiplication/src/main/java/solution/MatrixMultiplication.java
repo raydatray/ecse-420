@@ -27,7 +27,26 @@ public class MatrixMultiplication {
         double[][] a,
         double[][] b
     ) {
-        return new double[][] {};
+        int rows = a.length;
+        int common = a[0].length;
+        int cols = b[0].length;
+
+        double[][] bT = transposeMatrix(b);
+        double[][] res = new double[rows][cols];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                double s = 0.0;
+
+                for (int i = 0; i < common; i++) {
+                    s += a[r][i] * bT[c][i];
+                }
+
+                res[r][c] = s;
+            }
+        }
+
+        return res;
     }
 
     /**
