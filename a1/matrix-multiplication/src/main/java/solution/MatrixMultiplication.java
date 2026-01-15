@@ -59,4 +59,18 @@ public class MatrixMultiplication {
         }
         return matrix;
     }
+
+    private static double[][] transposeMatrix(double[][] m) {
+        int rows = m.length;
+        int cols = m[0].length;
+        double[][] t = new double[cols][rows];
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                t[c][r] = m[r][c];
+            }
+        }
+
+        return t;
+    }
 }
