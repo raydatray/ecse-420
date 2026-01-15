@@ -1,7 +1,10 @@
 package solution;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
 public class MatrixMultiplication {
 
@@ -60,7 +63,23 @@ public class MatrixMultiplication {
         double[][] a,
         double[][] b
     ) {
-        return new double[][] {};
+        int rows = a.length;
+        int cols = b[0].length;
+
+        double[][] bT = transposeMatrix(b);
+        double[][] res = new double[rows][cols];
+
+        CompletableFuture<?>[] futures = IntStream.range(0, rows)
+            .mapToObj(aRowIdx ->
+                CompletableFuture.runAsync(
+                    new MatrixMultiplicationTask(aRowIdx, a, bT, res)
+                )
+            )
+            .toArray(CompletableFuture[]::new);
+
+        CompletableFuture.allOf(futures).join();
+
+        return res;
     }
 
     /**
