@@ -26,7 +26,9 @@ public class MatrixMultiplication {
     public static double[][] sequentialMultiplyMatrix(
         double[][] a,
         double[][] b
-    ) {}
+    ) {
+        return new double[][] {};
+    }
 
     /**
      * Returns the result of a concurrent matrix multiplication
@@ -38,7 +40,9 @@ public class MatrixMultiplication {
     public static double[][] parallelMultiplyMatrix(
         double[][] a,
         double[][] b
-    ) {}
+    ) {
+        return new double[][] {};
+    }
 
     /**
      * Populates a matrix of given size with randomly generated integers between 0-10.
