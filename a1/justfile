@@ -4,6 +4,9 @@ run-deadlock:
 run-phil-deadlock:
     ./gradlew :dining-philosophers:run -PmainClass=solution.DeadlockPhilosophers
 
+run-phil:
+    ./gradlew :dining-philosophers:run -PmainClass=solution.SafePhilosophers
+
 run-ordering:
     ./gradlew :deadlock:run -PmainClass=example.ResourceOrdering
 
