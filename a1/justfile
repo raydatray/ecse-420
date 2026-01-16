@@ -1,2 +1,5 @@
+run-deadlock:
+    ./gradlew :deadlock:run -PmainClass=example.Deadlock
+
 test:
     ./gradlew clean test
