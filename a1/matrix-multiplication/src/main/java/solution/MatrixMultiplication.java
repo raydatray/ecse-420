@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
 public class MatrixMultiplication {
@@ -20,13 +19,6 @@ public class MatrixMultiplication {
         parallelMultiplyMatrix(a, b);
     }
 
-    /**
-     * Returns the result of a sequential matrix multiplication
-     * The two matrices are randomly generated
-     * @param a is the first matrix
-     * @param b is the second matrix
-     * @return the result of the multiplication
-     * */
     public static double[][] sequentialMultiplyMatrix(
         double[][] a,
         double[][] b
@@ -42,13 +34,6 @@ public class MatrixMultiplication {
             .toArray(double[][]::new);
     }
 
-    /**
-     * Returns the result of a concurrent matrix multiplication
-     * The two matrices are randomly generated
-     * @param a is the first matrix
-     * @param b is the second matrix
-     * @return the result of the multiplication
-     * */
     public static double[][] parallelMultiplyMatrix(
         double[][] a,
         double[][] b
