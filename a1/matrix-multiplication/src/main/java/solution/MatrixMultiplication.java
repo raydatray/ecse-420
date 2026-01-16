@@ -82,33 +82,23 @@ public class MatrixMultiplication {
         return res;
     }
 
-    /**
-     * Populates a matrix of given size with randomly generated integers between 0-10.
-     * @param numRows number of rows
-     * @param numCols number of cols
-     * @return matrix
-     */
-    private static double[][] generateRandomMatrix(int numRows, int numCols) {
-        double matrix[][] = new double[numRows][numCols];
-        for (int row = 0; row < numRows; row++) {
-            for (int col = 0; col < numCols; col++) {
-                matrix[row][col] = (double) ((int) (Math.random() * 10.0));
-            }
-        }
-        return matrix;
+    private static double[][] generateRandomMatrix(int rows, int cols) {
+        return IntStream.range(0, rows)
+            .mapToObj(r ->
+                IntStream.range(0, cols)
+                    .mapToDouble(c -> (double) ((int) (Math.random() * 10.0)))
+                    .toArray()
+            )
+            .toArray(double[][]::new);
     }
 
     private static double[][] transposeMatrix(double[][] m) {
-        int rows = m.length;
-        int cols = m[0].length;
-        double[][] t = new double[cols][rows];
-
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                t[c][r] = m[r][c];
-            }
-        }
-
-        return t;
+        return IntStream.range(0, m[0].length)
+            .mapToObj(c ->
+                IntStream.range(0, m.length)
+                    .mapToDouble(r -> m[r][c])
+                    .toArray()
+            )
+            .toArray(double[][]::new);
     }
 }
