@@ -5,6 +5,10 @@ public abstract class BasePhilosopher implements Runnable {
     protected int id;
     protected int eatCount = 0;
 
+    public BasePhilosopher(int id) {
+        this.id = id;
+    }
+
     public void run() {
         try {
             while (true) {
