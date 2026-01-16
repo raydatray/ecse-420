@@ -1,6 +1,9 @@
 run-deadlock:
     ./gradlew :deadlock:run -PmainClass=example.Deadlock
 
+run-phil-deadlock:
+    ./gradlew :dining-philosophers:run -PmainClass=solution.DeadlockPhilosophers
+
 run-ordering:
     ./gradlew :deadlock:run -PmainClass=example.ResourceOrdering
 
