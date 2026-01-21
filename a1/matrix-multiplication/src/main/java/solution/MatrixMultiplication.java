@@ -8,17 +8,6 @@ import java.util.stream.IntStream;
 
 public class MatrixMultiplication {
 
-    private static final int NUMBER_THREADS = 1;
-    private static final int MATRIX_SIZE = 2000;
-
-    public static void main(String[] args) {
-        // Generate two random matrices, same size
-        double[][] a = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
-        double[][] b = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
-        sequentialMultiplyMatrix(a, b);
-        parallelMultiplyMatrix(a, b);
-    }
-
     public static double[][] sequentialMultiplyMatrix(
         double[][] a,
         double[][] b
@@ -36,10 +25,11 @@ public class MatrixMultiplication {
 
     public static double[][] parallelMultiplyMatrix(
         double[][] a,
-        double[][] b
+        double[][] b,
+        int numThreads
     ) {
         double[][] bT = transposeMatrix(b);
-        ExecutorService exc = Executors.newFixedThreadPool(NUMBER_THREADS);
+        ExecutorService exc = Executors.newFixedThreadPool(numThreads);
 
         try {
             List<CompletableFuture<double[]>> futures = IntStream.range(
@@ -72,7 +62,7 @@ public class MatrixMultiplication {
             .sum();
     }
 
-    private static double[][] generateRandomMatrix(int rows, int cols) {
+    public static double[][] generateRandomMatrix(int rows, int cols) {
         return IntStream.range(0, rows)
             .mapToObj(r ->
                 IntStream.range(0, cols)
