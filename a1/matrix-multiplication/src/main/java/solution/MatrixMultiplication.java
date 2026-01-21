@@ -8,7 +8,8 @@ import java.util.stream.IntStream;
 
 public class MatrixMultiplication {
 
-    private static final int NUMBER_THREADS = 1;
+    private static final int DEFAULT_NUM_THREADS =
+        Runtime.getRuntime().availableProcessors();
     private static final int MATRIX_SIZE = 2000;
 
     public static void main(String[] args) {
@@ -16,7 +17,7 @@ public class MatrixMultiplication {
         double[][] a = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
         double[][] b = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
         sequentialMultiplyMatrix(a, b);
-        parallelMultiplyMatrix(a, b);
+        parallelMultiplyMatrix(a, b, DEFAULT_NUM_THREADS);
     }
 
     public static double[][] sequentialMultiplyMatrix(
@@ -36,10 +37,11 @@ public class MatrixMultiplication {
 
     public static double[][] parallelMultiplyMatrix(
         double[][] a,
-        double[][] b
+        double[][] b,
+        int numThreads
     ) {
         double[][] bT = transposeMatrix(b);
-        ExecutorService exc = Executors.newFixedThreadPool(NUMBER_THREADS);
+        ExecutorService exc = Executors.newFixedThreadPool(numThreads);
 
         try {
             List<CompletableFuture<double[]>> futures = IntStream.range(
