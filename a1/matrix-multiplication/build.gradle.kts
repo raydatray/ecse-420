@@ -44,7 +44,7 @@ sourceSets {
 
 application {
     // Default main class
-    mainClass = "solution.MatrixMultiplication"
+    mainClass = "solution.BenchmarkCLI"
 }
 
 tasks.named<Test>("test") {

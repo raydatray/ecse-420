@@ -8,18 +8,6 @@ import java.util.stream.IntStream;
 
 public class MatrixMultiplication {
 
-    private static final int DEFAULT_NUM_THREADS =
-        Runtime.getRuntime().availableProcessors();
-    private static final int MATRIX_SIZE = 2000;
-
-    public static void main(String[] args) {
-        // Generate two random matrices, same size
-        double[][] a = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
-        double[][] b = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
-        sequentialMultiplyMatrix(a, b);
-        parallelMultiplyMatrix(a, b, DEFAULT_NUM_THREADS);
-    }
-
     public static double[][] sequentialMultiplyMatrix(
         double[][] a,
         double[][] b
@@ -74,7 +62,7 @@ public class MatrixMultiplication {
             .sum();
     }
 
-    private static double[][] generateRandomMatrix(int rows, int cols) {
+    public static double[][] generateRandomMatrix(int rows, int cols) {
         return IntStream.range(0, rows)
             .mapToObj(r ->
                 IntStream.range(0, cols)

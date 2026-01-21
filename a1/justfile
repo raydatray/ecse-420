@@ -12,3 +12,6 @@ run-ordering:
 
 test:
     ./gradlew clean test
+
+run-matrix *args:
+    ./gradlew :matrix-multiplication:run --args="{{args}}"
