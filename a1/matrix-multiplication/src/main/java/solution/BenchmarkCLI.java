@@ -8,18 +8,21 @@ public class BenchmarkCLI {
     private static final int DEFAULT_MIN_THREADS = 1;
     private static final int DEFAULT_MAX_THREADS =
         Runtime.getRuntime().availableProcessors();
-    private static final int DEFAULT_MIN_SIZE = 500;
-    private static final int DEFAULT_MAX_SIZE = 4000;
-    private static final int DEFAULT_SIZE_STEP = 500;
+    private static final int[] BENCHMARK_SIZES = {
+        100,
+        200,
+        500,
+        1000,
+        2000,
+        3000,
+        4000,
+    };
 
     public static void main(String[] args) {
         String mode = null;
         int matrixSize = DEFAULT_MATRIX_SIZE;
         int minThreads = DEFAULT_MIN_THREADS;
         int maxThreads = DEFAULT_MAX_THREADS;
-        int minSize = DEFAULT_MIN_SIZE;
-        int maxSize = DEFAULT_MAX_SIZE;
-        int sizeStep = DEFAULT_SIZE_STEP;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -34,15 +37,6 @@ public class BenchmarkCLI {
                     break;
                 case "--max-threads":
                     maxThreads = Integer.parseInt(args[++i]);
-                    break;
-                case "--min-size":
-                    minSize = Integer.parseInt(args[++i]);
-                    break;
-                case "--max-size":
-                    maxSize = Integer.parseInt(args[++i]);
-                    break;
-                case "--size-step":
-                    sizeStep = Integer.parseInt(args[++i]);
                     break;
                 default:
                     System.err.printf("Unknown argument: %s%n", args[i]);
@@ -69,7 +63,7 @@ public class BenchmarkCLI {
                 minThreads,
                 maxThreads
             );
-            case "size" -> runSizeBenchmark(minSize, maxSize, sizeStep);
+            case "size" -> runSizeBenchmark();
         }
     }
 
@@ -88,7 +82,6 @@ public class BenchmarkCLI {
         System.out.printf("matrix size: %dx%d%n", matrixSize, matrixSize);
         System.out.println();
 
-        // Generate matrices once and reuse
         System.out.println("generating random matrices...");
         double[][] a = MatrixMultiplication.generateRandomMatrix(
             matrixSize,
@@ -101,7 +94,6 @@ public class BenchmarkCLI {
         System.out.println("done.");
         System.out.println();
 
-        // Run sequential benchmark
         System.out.println("running sequential multiplication...");
         long seqTime = captureRuntime(() ->
             MatrixMultiplication.sequentialMultiplyMatrix(a, b)
@@ -109,10 +101,8 @@ public class BenchmarkCLI {
         System.out.printf("sequential time: %d ms%n", seqTime);
         System.out.println();
 
-        // Print header
         System.out.println("threads\tparallel(ms)\tspeedup");
 
-        // Run parallel benchmarks
         IntStream.rangeClosed(minThreads, maxThreads).forEach(threads -> {
             long parTime = captureRuntime(() ->
                 MatrixMultiplication.parallelMultiplyMatrix(a, b, threads)
@@ -122,27 +112,16 @@ public class BenchmarkCLI {
         });
     }
 
-    private static void runSizeBenchmark(
-        int minSize,
-        int maxSize,
-        int sizeStep
-    ) {
+    private static void runSizeBenchmark() {
         int numThreads = Runtime.getRuntime().availableProcessors();
 
         System.out.println("------ size benchmark ------");
         System.out.printf("threads: %d%n", numThreads);
         System.out.println();
 
-        // Print header
         System.out.println("size\tsequential(ms)\tparallel(ms)\tspeedup");
 
-        // Run benchmarks for each size
-        IntStream.iterate(
-            minSize,
-            size -> size <= maxSize,
-            size -> size + sizeStep
-        ).forEach(size -> {
-            // Generate matrices for this size
+        IntStream.of(BENCHMARK_SIZES).forEach(size -> {
             double[][] a = MatrixMultiplication.generateRandomMatrix(
                 size,
                 size
@@ -189,23 +168,13 @@ public class BenchmarkCLI {
         System.out.println(
             "  --max-threads <n>      maximum thread count for thread mode (default: available processors)"
         );
-        System.out.println(
-            "  --min-size <n>         minimum matrix size for size mode (default: 500)"
-        );
-        System.out.println(
-            "  --max-size <n>         maximum matrix size for size mode (default: 4000)"
-        );
-        System.out.println(
-            "  --size-step <n>        step size for size mode (default: 500)"
-        );
+
         System.out.println();
         System.out.println("examples:");
         System.out.println("  ./gradlew run --args=\"--mode threads\"");
         System.out.println(
             "  ./gradlew run --args=\"--mode threads --matrix-size 4000 --min-threads 1 --max-threads 16\""
         );
-        System.out.println(
-            "  ./gradlew run --args=\"--mode size --min-size 500 --max-size 4000 --size-step 500\""
-        );
+        System.out.println("  ./gradlew run --args=\"--mode size\"");
     }
 }
