@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = "a2"
-include("filter-lock")
+include("bakery-lock","filter-lock")
