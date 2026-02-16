@@ -60,8 +60,8 @@ public class FilterLock implements Lock {
     }
 
     public void lock() {
-        Integer n = level.length();
-        Integer id = getOrSetThreadId();
+        int n = level.length();
+        int id = getOrSetThreadId();
 
         IntStream.range(1, n).forEach(L -> {
             System.out.printf("thread %d has entered LEVEL%d%n", id, L);
@@ -81,7 +81,7 @@ public class FilterLock implements Lock {
     }
 
     public void unlock() {
-        Integer id = getOrSetThreadId();
+        int id = getOrSetThreadId();
 
         level.set(id, 0);
     }
