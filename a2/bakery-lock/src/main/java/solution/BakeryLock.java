@@ -8,14 +8,14 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.IntStream;
 
-public class FilterLock implements Lock {
+public class BakeryLock implements Lock {
 
     public static void main(String[] args) throws InterruptedException {
         int numThreads = 8;
         int iterations = 5;
 
         int[] sharedCounter = { 0 };
-        FilterLock lock = new FilterLock(numThreads);
+        BakeryLock lock = new BakeryLock(numThreads);
 
         List<Thread> threads = IntStream.range(0, numThreads)
             .mapToObj(i ->
@@ -48,42 +48,60 @@ public class FilterLock implements Lock {
         });
     }
 
-    private AtomicIntegerArray level;
-    private AtomicIntegerArray victim;
+    private final AtomicIntegerArray flag;
+    private final AtomicIntegerArray label;
 
     private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
     private final AtomicInteger idGenerator = new AtomicInteger(0);
 
-    public FilterLock(Integer n) {
-        this.level = new AtomicIntegerArray(n);
-        this.victim = new AtomicIntegerArray(n);
+    public BakeryLock(Integer n) {
+        this.flag = new AtomicIntegerArray(n);
+        this.label = new AtomicIntegerArray(n);
     }
 
     public void lock() {
-        int n = level.length();
+        int n = flag.length();
         int id = getOrSetThreadId();
 
-        IntStream.range(1, n).forEach(L -> {
-            System.out.printf("thread %d has entered LEVEL%d%n", id, L);
-            level.set(id, L);
-            victim.set(L, id);
+        flag.set(id, 1);
 
-            while (
-                IntStream.range(0, n).anyMatch(
-                    k -> k != id && level.get(k) >= L && victim.get(L) == id
-                )
-            ) {
-                Thread.onSpinWait();
-            }
-        });
+        int highestLabel = IntStream.range(0, n)
+            .map(k -> label.get(k))
+            .max()
+            .orElse(0);
 
-        System.out.printf("thread %d has entered the CRITICAL SECTION &n", id);
+        label.set(id, highestLabel + 1);
+        flag.set(id, 0);
+
+        System.out.printf("thread %d obtained label%d%n", id, label.get(id));
+
+        IntStream.range(0, n)
+            .filter(k -> k != id)
+            .forEach(k -> {
+                while (flag.get(k) == 1) {
+                    Thread.onSpinWait();
+                }
+
+                while (
+                    label.get(k) != 0 &&
+                    (label.get(k) < label.get(id) || (label.get(k) == label.get(id) && k < id))
+                ) {
+                    Thread.onSpinWait();
+                }
+            });
+
+        System.out.printf(
+            "thread %d with label %d has entered the CRITICAL SECTION%n",
+            id,
+            label.get(id)
+        );
     }
 
     public void unlock() {
         int id = getOrSetThreadId();
 
-        level.set(id, 0);
+        flag.set(id, 0);
+        label.set(id, 0);
     }
 
     public void lockInterruptibly() {
