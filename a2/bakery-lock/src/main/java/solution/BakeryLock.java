@@ -1,5 +1,6 @@
 package solution;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
@@ -8,6 +9,44 @@ import java.util.concurrent.locks.Lock;
 import java.util.stream.IntStream;
 
 public class BakeryLock implements Lock {
+
+    public static void main(String[] args) throws InterruptedException {
+        int numThreads = 8;
+        int iterations = 5;
+
+        int[] sharedCounter = { 0 };
+        BakeryLock lock = new BakeryLock(numThreads);
+
+        List<Thread> threads = IntStream.range(0, numThreads)
+            .mapToObj(i ->
+                new Thread(() -> {
+                    IntStream.range(0, iterations).forEach(j -> {
+                        // deliberately slow down t0
+                        if (i == 0) {
+                            try {
+                                Thread.sleep(300);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                        lock.lock();
+                        sharedCounter[0]++;
+                        lock.unlock();
+                    });
+                })
+            )
+            .toList();
+
+        threads.forEach(Thread::start);
+        threads.forEach(t -> {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     private final AtomicIntegerArray flag;
     private final AtomicIntegerArray label;
