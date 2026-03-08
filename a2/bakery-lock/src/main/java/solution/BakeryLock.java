@@ -12,7 +12,7 @@ public class BakeryLock implements Lock {
 
     public static void main(String[] args) throws InterruptedException {
         int numThreads = 8;
-        int iterations = 5;
+        int iterations = 3;
 
         int[] sharedCounter = { 0 };
         BakeryLock lock = new BakeryLock(numThreads);
@@ -20,16 +20,24 @@ public class BakeryLock implements Lock {
         List<Thread> threads = IntStream.range(0, numThreads)
             .mapToObj(i ->
                 new Thread(() -> {
+                    lock.getOrSetThreadId();
+
                     IntStream.range(0, iterations).forEach(j -> {
-                        // deliberately slow down t0
+                        lock.lock();
+
+                        //deliberately slow down t0
                         if (i == 0) {
                             try {
-                                Thread.sleep(300);
+                                System.out.printf(
+                                    "intentionally delaying thread %d inside critical section%n",
+                                    lock.getOrSetThreadId()
+                                );
+                                Thread.sleep(50); // 50ms is enough to create a traffic jam
                             } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
                             }
                         }
-                        lock.lock();
+
                         sharedCounter[0]++;
                         lock.unlock();
                     });
@@ -73,7 +81,7 @@ public class BakeryLock implements Lock {
         label.set(id, highestLabel + 1);
         flag.set(id, 0);
 
-        System.out.printf("thread %d obtained label%d%n", id, label.get(id));
+        System.out.printf("thread %d obtained label %d%n", id, label.get(id));
 
         IntStream.range(0, n)
             .filter(k -> k != id)
@@ -84,7 +92,8 @@ public class BakeryLock implements Lock {
 
                 while (
                     label.get(k) != 0 &&
-                    (label.get(k) < label.get(id) || (label.get(k) == label.get(id) && k < id))
+                    (label.get(k) < label.get(id) ||
+                        (label.get(k) == label.get(id) && k < id))
                 ) {
                     Thread.onSpinWait();
                 }

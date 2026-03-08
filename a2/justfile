@@ -1,0 +1,14 @@
+test-bakery:
+    ./gradlew :bakery-lock:test
+
+test-filter:
+    ./gradlew :filter-lock:test
+
+test:
+    ./gradlew test
+
+run-bakery:
+    ./gradlew :bakery-lock:run
+
+run-filter:
+    ./gradlew :filter-lock:run
