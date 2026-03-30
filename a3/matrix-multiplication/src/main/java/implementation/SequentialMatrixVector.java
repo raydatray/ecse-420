@@ -9,7 +9,7 @@ public class SequentialMatrixVector {
 
         return IntStream.range(0, n)
             .mapToDouble(i ->
-                IntStream.Range(0, n)
+                IntStream.range(0, n)
                     .mapToDouble(j -> a[i][j] * x[j])
                     .sum()
             )
