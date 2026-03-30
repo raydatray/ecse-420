@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = "a3"
-include("bounded-array-queue", "hand-over-hand-lock")
+include("bounded-array-queue", "hand-over-hand-lock", "matrix-multiplication")
