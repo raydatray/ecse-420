@@ -21,6 +21,8 @@ public class Benchmark {
         1024,
         2048,
         4096,
+        8192,
+        16384,
     };
 
     public static void main(String[] args) {
