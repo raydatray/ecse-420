@@ -9,13 +9,23 @@ import java.util.stream.IntStream;
 public class ParallelMatrixVector {
 
     public static double[] multiply(double[][] a, double[] x, int threshold) {
-        ExecutorService exc = Executors.newCachedThreadPool();
+        ExecutorService exc = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors()
+        );
         try {
-            List<CompletableFuture<Double>> futures = IntStream.range(0, a.length)
-                .mapToObj(i -> parallelDotProduct(a[i], x, 0, x.length, threshold, exc))
+            List<CompletableFuture<Double>> futures = IntStream.range(
+                0,
+                a.length
+            )
+                .mapToObj(i ->
+                    parallelDotProduct(a[i], x, 0, x.length, threshold, exc)
+                )
                 .toList();
 
-            return futures.stream().mapToDouble(CompletableFuture::join).toArray();
+            return futures
+                .stream()
+                .mapToDouble(CompletableFuture::join)
+                .toArray();
         } finally {
             exc.shutdown();
         }
@@ -40,8 +50,22 @@ public class ParallelMatrixVector {
         }
 
         int mid = start + (end - start) / 2;
-        CompletableFuture<Double> left = parallelDotProduct(row, x, start, mid, threshold, exc);
-        CompletableFuture<Double> right = parallelDotProduct(row, x, mid, end, threshold, exc);
+        CompletableFuture<Double> left = parallelDotProduct(
+            row,
+            x,
+            start,
+            mid,
+            threshold,
+            exc
+        );
+        CompletableFuture<Double> right = parallelDotProduct(
+            row,
+            x,
+            mid,
+            end,
+            threshold,
+            exc
+        );
         return left.thenCombine(right, Double::sum);
     }
 }
