@@ -1,71 +1,121 @@
 package implementation;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 import java.util.stream.IntStream;
 
-public class ParallelMatrixVector {
+public final class ParallelMatrixVector {
+
+    private static final ForkJoinPool POOL = new ForkJoinPool(
+        Runtime.getRuntime().availableProcessors()
+    );
+
+    private static final int ROW_LEAF_SIZE = 64;
+
+    private ParallelMatrixVector() {}
 
     public static double[] multiply(double[][] a, double[] x, int threshold) {
-        ExecutorService exc = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors()
-        );
-        try {
-            List<CompletableFuture<Double>> futures = IntStream.range(
-                0,
-                a.length
-            )
-                .mapToObj(i ->
-                    parallelDotProduct(a[i], x, 0, x.length, threshold, exc)
-                )
-                .toList();
+        double[] y = new double[a.length];
+        POOL.invoke(new RowTask(a, x, y, 0, a.length, threshold));
+        return y;
+    }
 
-            return futures
-                .stream()
-                .mapToDouble(CompletableFuture::join)
-                .toArray();
-        } finally {
-            exc.shutdown();
+    private static final class RowTask extends RecursiveAction {
+
+        private final double[][] a;
+        private final double[] x;
+        private final double[] y;
+        private final int start;
+        private final int end;
+        private final int threshold;
+
+        RowTask(
+            double[][] a,
+            double[] x,
+            double[] y,
+            int start,
+            int end,
+            int threshold
+        ) {
+            this.a = a;
+            this.x = x;
+            this.y = y;
+            this.start = start;
+            this.end = end;
+            this.threshold = threshold;
+        }
+
+        @Override
+        protected void compute() {
+            if (end - start <= ROW_LEAF_SIZE) {
+                IntStream.range(start, end).forEach(i ->
+                    y[i] = new DotProductTask(
+                        a[i],
+                        x,
+                        0,
+                        x.length,
+                        threshold
+                    ).compute()
+                );
+                return;
+            }
+
+            int mid = start + (end - start) / 2;
+            invokeAll(
+                new RowTask(a, x, y, start, mid, threshold),
+                new RowTask(a, x, y, mid, end, threshold)
+            );
         }
     }
 
-    private static CompletableFuture<Double> parallelDotProduct(
-        double[] row,
-        double[] x,
-        int start,
-        int end,
-        int threshold,
-        ExecutorService exc
-    ) {
-        if (end - start <= threshold) {
-            return CompletableFuture.supplyAsync(
-                () ->
-                    IntStream.range(start, end)
-                        .mapToDouble(i -> row[i] * x[i])
-                        .sum(),
-                exc
-            );
+    private static final class DotProductTask extends RecursiveTask<Double> {
+
+        private final double[] row;
+        private final double[] x;
+        private final int start;
+        private final int end;
+        private final int threshold;
+
+        DotProductTask(
+            double[] row,
+            double[] x,
+            int start,
+            int end,
+            int threshold
+        ) {
+            this.row = row;
+            this.x = x;
+            this.start = start;
+            this.end = end;
+            this.threshold = threshold;
         }
 
-        int mid = start + (end - start) / 2;
-        CompletableFuture<Double> left = parallelDotProduct(
-            row,
-            x,
-            start,
-            mid,
-            threshold,
-            exc
-        );
-        CompletableFuture<Double> right = parallelDotProduct(
-            row,
-            x,
-            mid,
-            end,
-            threshold,
-            exc
-        );
-        return left.thenCombine(right, Double::sum);
+        @Override
+        protected Double compute() {
+            if (end - start <= threshold) {
+                return IntStream.range(start, end)
+                    .mapToDouble(i -> row[i] * x[i])
+                    .sum();
+            }
+
+            int mid = start + (end - start) / 2;
+            DotProductTask right = new DotProductTask(
+                row,
+                x,
+                mid,
+                end,
+                threshold
+            );
+            right.fork();
+            double leftSum = new DotProductTask(
+                row,
+                x,
+                start,
+                mid,
+                threshold
+            ).compute();
+            return leftSum + right.join();
+        }
     }
 }
