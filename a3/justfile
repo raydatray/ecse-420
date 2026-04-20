@@ -1,0 +1,11 @@
+run-matrix:
+    ./gradlew :matrix-multiplication:run
+
+test-baq:
+    ./gradlew :bounded-array-queue:test
+
+test-hohl:
+    ./gradlew :hand-over-hand-lock:test
+
+test:
+    ./gradlew test
