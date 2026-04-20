@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -47,7 +51,7 @@ public class FineGrainedListSetTest {
 
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    public void testConcurrentContains() {
+    public void testConcurrentContains() throws InterruptedException {
         FineGrainedListSet list = new FineGrainedListSet();
         IntStream.range(0, 1000).forEach(list::add);
 
