@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 public class Benchmark {
 
-    private static final int N = 10000;
+    private static final int N = 4000;
     private static final int NUM_THREADS =
         Runtime.getRuntime().availableProcessors();
     private static final int[] THRESHOLDS = {
@@ -32,7 +32,7 @@ public class Benchmark {
 
         double[][] A = new double[N][N];
         double[] x = new double[N];
-        Random rand = new Random(42);
+        Random rand = new Random(69);
 
         for (int i = 0; i < N; i++) {
             x[i] = rand.nextDouble();
