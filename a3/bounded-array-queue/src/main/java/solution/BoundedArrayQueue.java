@@ -21,17 +21,11 @@ public class BoundedArrayQueue<T> {
     private final Condition notFull = enqLock.newCondition();
     private final Condition notEmpty = deqLock.newCondition();
 
-    @SuppressWarnings("unchecked")
     public BoundedArrayQueue(int capacity) {
-        if (capacity <= 0) throw new IllegalArgumentException("capacity must be positive");
         this.capacity = capacity;
         this.items = (T[]) new Object[capacity];
     }
 
-    /**
-     * Acquires the lock, waits while the guard condition is true,
-     * executes the action, then releases the lock.
-     */
     private <R> R withGuardedLock(
         ReentrantLock lock,
         Condition condition,
@@ -53,7 +47,8 @@ public class BoundedArrayQueue<T> {
         if (x == null) throw new NullPointerException();
 
         boolean wasEmpty = withGuardedLock(
-            enqLock, notFull,
+            enqLock,
+            notFull,
             () -> size.get() == capacity,
             () -> {
                 items[tail] = x;
@@ -76,7 +71,8 @@ public class BoundedArrayQueue<T> {
         boolean[] wasFull = { false };
 
         T result = withGuardedLock(
-            deqLock, notEmpty,
+            deqLock,
+            notEmpty,
             () -> size.get() == 0,
             () -> {
                 T x = items[head];
